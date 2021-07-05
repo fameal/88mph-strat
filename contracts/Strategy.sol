@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0
-// Feel free to change the license, but this is what we use
 
-// Feel free to change this version of Solidity. We support >=0.6.0 <0.7.0;
 pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
@@ -27,18 +25,22 @@ contract Strategy is BaseStrategy {
     using SafeMath for uint256;
 
     bool internal isOriginal = true;
-    
+
     // Path for swaps
     address[] private path;
 
     // 88MPH contracts
-    IRewards public mph88Rewards = IRewards(0x98df8D9E56b51e4Ea8AA9b57F8A5Df7A044234e1);
-    
-    // Tokens
-    IERC20 internal constant weth = IERC20(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
-    IERC20 internal constant dai = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
+    IRewards public mph88Rewards =
+        IRewards(0x98df8D9E56b51e4Ea8AA9b57F8A5Df7A044234e1);
 
-    IUniswapV2Router public constant uniswapRouter = IUniswapV2Router(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
+    // Tokens
+    IERC20 internal constant weth =
+        IERC20(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
+    IERC20 internal constant dai =
+        IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
+
+    IUniswapV2Router public constant uniswapRouter =
+        IUniswapV2Router(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
 
     constructor(address _vault) public BaseStrategy(_vault) {
         // You can set these parameters on deployment to whatever you want
@@ -111,13 +113,12 @@ contract Strategy is BaseStrategy {
             (_amountFreed, _loss) = liquidatePosition(_debtOutstanding);
             _debtPayment = Math.min(_amountFreed, _debtOutstanding);
         }
-
     }
 
     function sellDai() internal {
         uint256 daiBalance = dai.balanceOf(address(this));
 
-        if (daiBalance == 0 ) {
+        if (daiBalance == 0) {
             return;
         }
 
@@ -131,19 +132,18 @@ contract Strategy is BaseStrategy {
     }
 
     function adjustPosition(uint256 _debtOutstanding) internal override {
-    if (emergencyExit) {
+        if (emergencyExit) {
             return;
         }
         if (_debtOutstanding >= balanceOfWant()) {
             return;
         }
-        
+
         uint256 toStake = balanceOfWant().sub(_debtOutstanding);
 
         if (toStake > 0) {
             mph88Rewards.stake(toStake);
         }
-
     }
 
     function liquidatePosition(uint256 _amountNeeded)
@@ -157,7 +157,9 @@ contract Strategy is BaseStrategy {
         uint256 balanceStakedNow = balanceStaked();
 
         if (_amountNeeded > balanceOfWant()) {
-            mph88Rewards.withdraw((Math.min(balanceStakedNow, _amountNeeded - balanceOfWant())));
+            mph88Rewards.withdraw(
+                (Math.min(balanceStakedNow, _amountNeeded - balanceOfWant()))
+            );
         }
 
         uint256 totalAssets = estimatedTotalAssets();
@@ -171,8 +173,8 @@ contract Strategy is BaseStrategy {
 
     function liquidateAllPositions() internal override returns (uint256) {
         uint256 balanceStakedNow = balanceStaked();
-        
-        if ( balanceStakedNow > 0) {
+
+        if (balanceStakedNow > 0) {
             liquidatePosition(balanceStakedNow);
         }
 
@@ -189,10 +191,9 @@ contract Strategy is BaseStrategy {
         mph88Rewards.exit();
 
         // if there's some DAI left here for some reason, transfer to new strat
-        if (balanceOfDai > 0 ) {
+        if (balanceOfDai > 0) {
             dai.transfer(_newStrategy, balanceOfDai);
         }
-
     }
 
     // Override this to add all tokens/tokenized positions this contract manages
