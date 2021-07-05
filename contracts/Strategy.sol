@@ -131,7 +131,7 @@ contract Strategy is BaseStrategy {
     }
 
     function adjustPosition(uint256 _debtOutstanding) internal override {
-        if (emergencyExit) {
+    if (emergencyExit) {
             return;
         }
         if (_debtOutstanding >= balanceOfWant()) {
