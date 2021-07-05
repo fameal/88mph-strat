@@ -39,17 +39,33 @@ def keeper(accounts):
 
 
 @pytest.fixture
+def reserve(accounts):
+    yield accounts.at("0xc2Be79CF419CF48f447320D5D16f5115bBb58B03", force=True)
+
+
+@pytest.fixture
+def reserve_dai(accounts):
+    yield accounts.at("0xF977814e90dA44bFA03b6295A0616a897441aceC", force=True)
+
+
+@pytest.fixture
 def token():
-    token_address = "0x6b175474e89094c44da98b954eedeac495271d0f"  # this should be the address of the ERC-20 used by the strategy/vault (DAI)
+    token_address = "0x8888801aF4d980682e47f1A9036e589479e835C5"  # MPH
     yield Contract(token_address)
 
 
 @pytest.fixture
-def amount(accounts, token, user):
-    amount = 10_000 * 10 ** token.decimals()
+def dai():
+    token_address = "0x6B175474E89094C44Da98b954EedeAC495271d0F"
+    yield Contract(token_address)
+
+
+@pytest.fixture
+def amount(reserve, token, user):
+    amount = 1_000 * 10 ** token.decimals()
     # In order to get some funds for the token you are about to use,
     # it impersonate an exchange address to use it's funds.
-    reserve = accounts.at("0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643", force=True)
+    # reserve = accounts.at("0xc2Be79CF419CF48f447320D5D16f5115bBb58B03", force=True)
     token.transfer(user, amount, {"from": reserve})
     yield amount
 

@@ -17,9 +17,6 @@ def test_operation(
     strategy.harvest()
     assert pytest.approx(strategy.estimatedTotalAssets(), rel=RELATIVE_APPROX) == amount
 
-    # tend()
-    strategy.tend()
-
     # withdrawal
     vault.withdraw({"from": user})
     assert (
