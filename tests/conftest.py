@@ -62,7 +62,7 @@ def dai():
 
 @pytest.fixture
 def amount(reserve, token, user):
-    amount = 1_000 * 10 ** token.decimals()
+    amount = 500 * 10 ** token.decimals()
     # In order to get some funds for the token you are about to use,
     # it impersonate an exchange address to use it's funds.
     # reserve = accounts.at("0xc2Be79CF419CF48f447320D5D16f5115bBb58B03", force=True)
