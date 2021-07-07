@@ -216,7 +216,12 @@ contract Strategy is BaseStrategy {
         view
         override
         returns (address[] memory)
-    {}
+    {
+        address[] memory protected = new address[](1);
+        protected[0] = address(dai);
+
+        return protected;
+    }
 
     /**
      * @notice
