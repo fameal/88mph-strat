@@ -246,6 +246,9 @@ contract Strategy is BaseStrategy {
         pathEthToWant[0] = address(weth);
         pathEthToWant[1] = address(want);
 
-        return uniswapRouter.getAmountsOut(_amtInWei, pathEthToWant)[0];
+        uint256[] memory callCostInWant =
+            uniswapRouter.getAmountsOut(_amtInWei, pathEthToWant);
+
+        return callCostInWant[callCostInWant.length - 1];
     }
 }
