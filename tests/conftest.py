@@ -85,7 +85,7 @@ def amount(reserve, token, user):
 
 @pytest.fixture
 def amount_2(reserve, token, user_2):
-    amount = 500 * 10 ** token.decimals()
+    amount = 750 * 10 ** token.decimals()
     token.transfer(user_2, amount, {"from": reserve})
     yield amount
 
