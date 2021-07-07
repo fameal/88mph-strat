@@ -42,8 +42,17 @@ def test_emergency_exit(
 
 
 def test_profitable_harvest(
-    chain, accounts, token, vault, strategy, user, strategist, amount, RELATIVE_APPROX, dai
-):    
+    chain,
+    accounts,
+    token,
+    vault,
+    strategy,
+    user,
+    strategist,
+    amount,
+    RELATIVE_APPROX,
+    dai,
+):
     # Deposit to the vault
     token.approve(vault.address, amount, {"from": user})
     vault.deposit(amount, {"from": user})
@@ -64,7 +73,7 @@ def test_profitable_harvest(
     chain.sleep(3600 * 6)  # 6 hrs needed for profits to unlock
     chain.mine(1)
     profit = token.balanceOf(vault.address)  # Profits go to vault
-    # TODO: Uncomment the lines below
+
     assert strategy.estimatedTotalAssets() + profit > amount
     assert vault.pricePerShare() > before_pps
 
@@ -106,10 +115,9 @@ def test_sweep(gov, vault, strategy, token, user, amount, weth, weth_amout):
     with brownie.reverts("!shares"):
         strategy.sweep(vault.address, {"from": gov})
 
-    # TODO: If you add protected tokens to the strategy.
     # Protected token doesn't work
-    # with brownie.reverts("!protected"):
-    #     strategy.sweep(strategy.protectedToken(), {"from": gov})
+    with brownie.reverts("!protected"):
+        strategy.sweep(strategy.protectedToken(), {"from": gov})
 
     before_balance = weth.balanceOf(gov)
     weth.transfer(strategy, weth_amout, {"from": user})

@@ -114,14 +114,18 @@ def vault(pm, gov, rewards, guardian, management, token):
 
 
 @pytest.fixture
-def strategy(strategist, keeper, vault, Strategy, gov, rewards_contract, rewards_distribution):
+def strategy(
+    strategist, keeper, vault, Strategy, gov, rewards_contract, rewards_distribution
+):
     strategy = strategist.deploy(Strategy, vault)
     strategy.setKeeper(keeper)
     vault.addStrategy(strategy, 10_000, 0, 2 ** 256 - 1, 1_000, {"from": gov})
 
     # If rewards distribution is over, let's restart it ;)
-    if ( rewards_contract.periodFinish() <= time.time() ):
-      rewards_contract.notifyRewardAmount(10_000 * 10 ** 18, {'from': rewards_distribution})
+    if rewards_contract.periodFinish() <= time.time():
+        rewards_contract.notifyRewardAmount(
+            10_000 * 10 ** 18, {"from": rewards_distribution}
+        )
 
     yield strategy
 
