@@ -30,7 +30,7 @@ def test_multiple_users_shutdown(
     chain.sleep(1)
     chain.mine(1)
 
-    token.approve(vault.address, amount, {"from": user_2})
+    token.approve(vault.address, amount_2, {"from": user_2})
     vault.deposit(amount_2, {"from": user_2})
     assert token.balanceOf(vault.address) >= amount_2
 
