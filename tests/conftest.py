@@ -1,4 +1,5 @@
 import pytest
+import time
 from brownie import config
 from brownie import Contract
 
@@ -39,6 +40,11 @@ def keeper(accounts):
 
 
 @pytest.fixture
+def user_2(accounts):
+    yield accounts[6]
+
+
+@pytest.fixture
 def reserve(accounts):
     yield accounts.at("0xc2Be79CF419CF48f447320D5D16f5115bBb58B03", force=True)
 
@@ -46,6 +52,16 @@ def reserve(accounts):
 @pytest.fixture
 def reserve_dai(accounts):
     yield accounts.at("0xF977814e90dA44bFA03b6295A0616a897441aceC", force=True)
+
+
+@pytest.fixture
+def rewards_distribution(accounts):
+    yield accounts.at("0x1Bb67aA336F21cfa5bD328C5930e5202Ed35dDEB", force=True)
+
+
+@pytest.fixture
+def rewards_contract():
+    yield Contract.from_explorer("0x98df8D9E56b51e4Ea8AA9b57F8A5Df7A044234e1")
 
 
 @pytest.fixture
@@ -63,10 +79,14 @@ def dai():
 @pytest.fixture
 def amount(reserve, token, user):
     amount = 500 * 10 ** token.decimals()
-    # In order to get some funds for the token you are about to use,
-    # it impersonate an exchange address to use it's funds.
-    # reserve = accounts.at("0xc2Be79CF419CF48f447320D5D16f5115bBb58B03", force=True)
     token.transfer(user, amount, {"from": reserve})
+    yield amount
+
+
+@pytest.fixture
+def amount_2(reserve, token, user_2):
+    amount = 500 * 10 ** token.decimals()
+    token.transfer(user_2, amount, {"from": reserve})
     yield amount
 
 
@@ -94,10 +114,15 @@ def vault(pm, gov, rewards, guardian, management, token):
 
 
 @pytest.fixture
-def strategy(strategist, keeper, vault, Strategy, gov):
+def strategy(strategist, keeper, vault, Strategy, gov, rewards_contract, rewards_distribution):
     strategy = strategist.deploy(Strategy, vault)
     strategy.setKeeper(keeper)
     vault.addStrategy(strategy, 10_000, 0, 2 ** 256 - 1, 1_000, {"from": gov})
+
+    # If rewards distribution is over, let's restart it ;)
+    if ( rewards_contract.periodFinish() <= time.time() ):
+      rewards_contract.notifyRewardAmount(10_000 * 10 ** 18, {'from': rewards_distribution})
+
     yield strategy
 
 
