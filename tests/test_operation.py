@@ -117,7 +117,7 @@ def test_sweep(gov, vault, strategy, token, user, amount, weth, weth_amout):
 
     # Protected token doesn't work
     with brownie.reverts("!protected"):
-        strategy.sweep(strategy.protectedToken(), {"from": gov})
+        strategy.sweep(strategy.protectedTokens(), {"from": gov})
 
     before_balance = weth.balanceOf(gov)
     weth.transfer(strategy, weth_amout, {"from": user})
