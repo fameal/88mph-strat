@@ -103,7 +103,7 @@ def test_change_debt(
     assert pytest.approx(strategy.estimatedTotalAssets(), rel=RELATIVE_APPROX) == half
 
 
-def test_sweep(gov, vault, strategy, token, user, amount, weth, weth_amout):
+def test_sweep(gov, vault, strategy, token, user, amount, weth, weth_amout, dai):
     # Strategy want token doesn't work
     token.transfer(strategy, amount, {"from": user})
     assert token.address == strategy.want()
@@ -117,7 +117,7 @@ def test_sweep(gov, vault, strategy, token, user, amount, weth, weth_amout):
 
     # Protected token doesn't work
     with brownie.reverts("!protected"):
-        strategy.sweep(strategy.protectedTokens(), {"from": gov})
+        strategy.sweep(dai, {"from": gov})
 
     before_balance = weth.balanceOf(gov)
     weth.transfer(strategy, weth_amout, {"from": user})
