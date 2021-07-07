@@ -35,8 +35,8 @@ def test_multiple_users_shutdown(
     assert token.balanceOf(vault.address) >= amount_2
 
     # Sleep for a while to earn yield
-    chain.sleep(1)
-    chain.mine(1)
+    chain.sleep(3600)
+    chain.mine(270)
 
     # Harvest 2: Realize profit
     before_pps = vault.pricePerShare()
@@ -61,8 +61,8 @@ def test_multiple_users_shutdown(
     assert pytest.approx(before_pps, rel=RELATIVE_APPROX) == vault.pricePerShare()
 
     # Sleep for a while to earn yield
-    chain.sleep(1)
-    chain.mine(1)
+    chain.sleep(3600)
+    chain.mine(270)
 
     before_pps = vault.pricePerShare()
     vault.withdraw({"from": user})
