@@ -24,8 +24,6 @@ contract Strategy is BaseStrategy {
     using Address for address;
     using SafeMath for uint256;
 
-    bool internal isOriginal = true;
-
     // Path for swaps
     address[] private path;
 
@@ -101,17 +99,21 @@ contract Strategy is BaseStrategy {
 
         uint256 assets = estimatedTotalAssets();
         uint256 debt = vault.strategies(address(this)).totalDebt;
+        uint256 balanceWant = balanceOfWant();
 
         if (assets > debt) {
-            _profit = balanceOfWant();
+            _profit = assets.sub(debt);
         } else {
             _loss = debt.sub(assets);
         }
 
-        if (_debtOutstanding > 0) {
-            uint256 _amountFreed = 0;
-            (_amountFreed, _loss) = liquidatePosition(_debtOutstanding);
-            _debtPayment = Math.min(_amountFreed, _debtOutstanding);
+        //que onda el underflow cuando loss > debtOutstanding?
+        uint256 amountToFree = _debtOutstanding.add(_profit).sub(_loss);
+
+        if (amountToFree > 0) {
+            uint256 amountFreed = 0;
+            (amountFreed, _loss) = liquidatePosition(amountToFree);
+            _debtPayment = Math.min(amountToFree, _debtOutstanding);
         }
     }
 
@@ -141,7 +143,7 @@ contract Strategy is BaseStrategy {
 
         uint256 toStake = balanceOfWant().sub(_debtOutstanding);
 
-        if (toStake > 0) {
+        if (toStake > 0 && block.timestamp >= mph88Rewards.starttime()) {
             mph88Rewards.stake(toStake);
         }
     }
@@ -185,12 +187,12 @@ contract Strategy is BaseStrategy {
 
     function prepareMigration(address _newStrategy) internal override {
         // NOTE: `migrate` will automatically forward all `want` in this strategy to the new one
-        uint256 balanceOfDai = dai.balanceOf(address(this));
 
         // claim rewards and withdraw staked balance
         mph88Rewards.exit();
 
         // if there's some DAI left here for some reason, transfer to new strat
+        uint256 balanceOfDai = dai.balanceOf(address(this));
         if (balanceOfDai > 0) {
             dai.transfer(_newStrategy, balanceOfDai);
         }
@@ -237,7 +239,13 @@ contract Strategy is BaseStrategy {
         override
         returns (uint256)
     {
-        // TODO create an accurate price oracle
-        return _amtInWei;
+        if (_amtInWei == 0) return 0;
+
+        // Path from ETH to want (MPH)
+        address[] memory pathEthToWant = new address[](2);
+        pathEthToWant[0] = address(weth);
+        pathEthToWant[1] = address(want);
+
+        return uniswapRouter.getAmountsOut(_amtInWei, pathEthToWant)[0];
     }
 }
