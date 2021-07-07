@@ -143,7 +143,7 @@ contract Strategy is BaseStrategy {
 
         uint256 toStake = balanceOfWant().sub(_debtOutstanding);
 
-        if (toStake > 0 && block.timestamp >= mph88Rewards.starttime()) {
+        if (toStake > 0) {
             mph88Rewards.stake(toStake);
         }
     }
