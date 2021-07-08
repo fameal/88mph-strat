@@ -4,6 +4,12 @@ from brownie import config
 from brownie import Contract
 
 
+# Snapshots the chain before each test and reverts after test completion.
+@pytest.fixture(autouse=True)
+def isolation(fn_isolation):
+    pass
+
+
 @pytest.fixture
 def gov(accounts):
     yield accounts.at("0xFEB4acf3df3cDEA7399794D0869ef76A6EfAff52", force=True)
@@ -103,7 +109,7 @@ def weth_amout(user, weth):
     yield weth_amout
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def vault(pm, gov, rewards, guardian, management, token):
     Vault = pm(config["dependencies"][0]).Vault
     vault = guardian.deploy(Vault)
@@ -113,7 +119,7 @@ def vault(pm, gov, rewards, guardian, management, token):
     yield vault
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def strategy(
     strategist, keeper, vault, Strategy, gov, rewards_contract, rewards_distribution
 ):
