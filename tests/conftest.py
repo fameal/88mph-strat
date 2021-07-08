@@ -1,7 +1,6 @@
 import pytest
 import time
-from brownie import config
-from brownie import Contract
+from brownie import config, Contract, interface
 
 
 # Snapshots the chain before each test and reverts after test completion.
@@ -67,7 +66,7 @@ def rewards_distribution(accounts):
 
 @pytest.fixture
 def rewards_contract():
-    yield Contract.from_explorer("0x98df8D9E56b51e4Ea8AA9b57F8A5Df7A044234e1")
+    yield interface.IRewards("0x98df8D9E56b51e4Ea8AA9b57F8A5Df7A044234e1")
 
 
 @pytest.fixture
