@@ -24,9 +24,6 @@ contract Strategy is BaseStrategy {
     using Address for address;
     using SafeMath for uint256;
 
-    // Path for swaps
-    address[] immutable path;
-
     // 88MPH contracts
     IRewards public constant mph88Rewards =
         IRewards(0x98df8D9E56b51e4Ea8AA9b57F8A5Df7A044234e1);
@@ -51,12 +48,6 @@ contract Strategy is BaseStrategy {
 
         // Approve uniswap to spend infinite DAI
         dai.safeApprove(address(uniswapRouter), type(uint256).max);
-
-        // Path from DAI to want (MPH)
-        path = new address[](3);
-        path[0] = address(dai);
-        path[1] = address(weth);
-        path[2] = address(want);
     }
 
     // ******** OVERRIDE THESE METHODS FROM BASE CONTRACT ************
@@ -123,6 +114,12 @@ contract Strategy is BaseStrategy {
         if (daiBalance == 0) {
             return;
         }
+
+        // Path from DAI to want (MPH)
+        address[] memory path = new address[](3);
+        path[0] = address(dai);
+        path[1] = address(weth);
+        path[2] = address(want);
 
         uniswapRouter.swapExactTokensForTokens(
             daiBalance,
