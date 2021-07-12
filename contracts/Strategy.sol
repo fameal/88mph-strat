@@ -25,16 +25,16 @@ contract Strategy is BaseStrategy {
     using SafeMath for uint256;
 
     // Path for swaps
-    address[] private path;
+    address[] immutable path;
 
     // 88MPH contracts
-    IRewards public mph88Rewards =
+    IRewards public constant mph88Rewards =
         IRewards(0x98df8D9E56b51e4Ea8AA9b57F8A5Df7A044234e1);
 
     // Tokens
-    IERC20 internal constant weth =
+    IERC20 public constant weth =
         IERC20(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
-    IERC20 internal constant dai =
+    IERC20 public constant dai =
         IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
 
     IUniswapV2Router public constant uniswapRouter =
@@ -108,7 +108,7 @@ contract Strategy is BaseStrategy {
         }
 
         //que onda el underflow cuando loss > debtOutstanding?
-        uint256 amountToFree = _debtOutstanding.add(_profit).sub(_loss);
+        uint256 amountToFree = _debtOutstanding.add(_profit);
 
         if (amountToFree > 0) {
             uint256 amountFreed = 0;
@@ -157,11 +157,16 @@ contract Strategy is BaseStrategy {
         // NOTE: Maintain invariant `_liquidatedAmount + _loss <= _amountNeeded`
 
         uint256 balanceStakedNow = balanceStaked();
+        uint256 balanceOfWantNow = balanceOfWant();
 
-        if (_amountNeeded > balanceOfWant()) {
-            mph88Rewards.withdraw(
-                (Math.min(balanceStakedNow, _amountNeeded - balanceOfWant()))
+        if (_amountNeeded > balanceOfWantNow) {
+            _liquidatedAmount = Math.min(
+                balanceStakedNow,
+                _amountNeeded - balanceOfWantNow
             );
+            mph88Rewards.withdraw(_liquidatedAmount);
+        } else {
+            _liquidatedAmount = _amountNeeded;
         }
 
         uint256 totalAssets = estimatedTotalAssets();
@@ -251,9 +256,9 @@ contract Strategy is BaseStrategy {
         pathEthToWant[0] = address(weth);
         pathEthToWant[1] = address(want);
 
-        uint256[] memory callCostInWant =
+        uint256[] memory amountInWant =
             uniswapRouter.getAmountsOut(_amtInWei, pathEthToWant);
 
-        return callCostInWant[callCostInWant.length - 1];
+        return amountInWant[amountInWant.length - 1];
     }
 }
