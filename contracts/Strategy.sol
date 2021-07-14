@@ -156,11 +156,11 @@ contract Strategy is BaseStrategy {
         uint256 balanceOfWantNow = balanceOfWant();
 
         if (_amountNeeded > balanceOfWantNow) {
-            uint256 amountToUnstake =
-                Math.min(balanceStaked(), _amountNeeded.sub(balanceOfWantNow));
-            mph88Rewards.withdraw(amountToUnstake);
-            _liquidatedAmount = balanceOfWant();
-            _loss = _amountNeeded.sub(balanceOfWantNow);
+            _liquidatedAmount = Math.min(
+                balanceStaked(),
+                _amountNeeded.sub(balanceOfWantNow)
+            );
+            mph88Rewards.withdraw(_liquidatedAmount);
         } else {
             _liquidatedAmount = _amountNeeded;
         }
