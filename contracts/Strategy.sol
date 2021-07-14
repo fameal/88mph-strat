@@ -98,13 +98,12 @@ contract Strategy is BaseStrategy {
             _loss = debt.sub(assets);
         }
 
-        //que onda el underflow cuando loss > debtOutstanding?
         uint256 amountToFree = _debtOutstanding.add(_profit);
 
         if (amountToFree > 0) {
             uint256 amountFreed = 0;
             (amountFreed, _loss) = liquidatePosition(amountToFree);
-            _debtPayment = Math.min(amountToFree, _debtOutstanding);
+            _debtPayment = Math.min(amountFreed, _debtOutstanding);
         }
     }
 
