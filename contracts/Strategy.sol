@@ -103,7 +103,7 @@ contract Strategy is BaseStrategy {
         if (amountToFree > 0) {
             uint256 amountFreed = 0;
             (amountFreed, _loss) = liquidatePosition(amountToFree);
-            _debtPayment = Math.min(amountFreed, _debtOutstanding);
+            _debtPayment = Math.min(amountFreed.sub(_profit), _debtOutstanding);
         }
     }
 
@@ -163,6 +163,8 @@ contract Strategy is BaseStrategy {
         } else {
             _liquidatedAmount = _amountNeeded;
         }
+
+        _loss = balanceOfWant().sub(_amountNeeded);
     }
 
     function liquidateAllPositions() internal override returns (uint256) {
