@@ -90,7 +90,6 @@ contract Strategy is BaseStrategy {
 
         uint256 assets = estimatedTotalAssets();
         uint256 debt = vault.strategies(address(this)).totalDebt;
-        uint256 balanceWant = balanceOfWant();
 
         if (assets > debt) {
             _profit = assets.sub(debt);
@@ -98,13 +97,23 @@ contract Strategy is BaseStrategy {
             _loss = debt.sub(assets);
         }
 
-        //que onda el underflow cuando loss > debtOutstanding?
         uint256 amountToFree = _debtOutstanding.add(_profit);
 
-        if (amountToFree > 0) {
+        if (amountToFree > 0 && balanceOfWant() < amountToFree) {
             uint256 amountFreed = 0;
             (amountFreed, _loss) = liquidatePosition(amountToFree);
-            _debtPayment = Math.min(amountToFree, _debtOutstanding);
+
+            // if I cannot free enough, or just enough, then it's all profit ser
+            if (_profit >= amountFreed) {
+                _profit = amountFreed;
+                _debtPayment = 0;
+            } else {
+                // I have more than enough, some is profit and the rest is debt repayment
+                _debtPayment = Math.min(
+                    amountFreed.sub(_profit),
+                    _debtOutstanding
+                );
+            }
         }
     }
 
@@ -156,13 +165,18 @@ contract Strategy is BaseStrategy {
         uint256 balanceOfWantNow = balanceOfWant();
 
         if (_amountNeeded > balanceOfWantNow) {
-            _liquidatedAmount = Math.min(
-                balanceStaked(),
-                _amountNeeded.sub(balanceOfWantNow)
-            );
-            mph88Rewards.withdraw(_liquidatedAmount);
+            uint256 amountToUnstake =
+                Math.min(balanceStaked(), _amountNeeded.sub(balanceOfWantNow));
+            mph88Rewards.withdraw(amountToUnstake);
+
+            _liquidatedAmount = amountToUnstake.add(balanceOfWantNow);
+
+            if (_amountNeeded > _liquidatedAmount) {
+                _loss = _liquidatedAmount.sub(_amountNeeded);
+            }
         } else {
             _liquidatedAmount = _amountNeeded;
+            _loss = 0;
         }
     }
 
